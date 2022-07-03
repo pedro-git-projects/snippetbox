@@ -1,14 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 /* Handlers */
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello, snippetbox"))
-
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -16,13 +17,18 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func showSnippet(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("showing snippet"))
+	id, err := strconv.Atoi(r.URL.Query().Get("id")) // Using Atoi to check if the id is numeric
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+	fmt.Fprintf(w, "Display the snippet with ID %d...", id)
 }
 
 func createSnippet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		w.Header().Set("Allow", "POST")          // will indicate that POST is the allowed method
-		http.Error(w, "Method Not Allowed", 405) // calls w.WriteHeader() and w.Write() under the hood
+		w.Header().Set("Allow", "POST")
+		http.Error(w, "Method Not Allowed", 405)
 		return
 	}
 	w.Write([]byte("creating snippet"))

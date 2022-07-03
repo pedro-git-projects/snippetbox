@@ -1,23 +1,18 @@
-# Notas - 2.5
-## Customizando Headers HTTP 
+# Notas - 2.6
+## Queries de URL 
 
 |Método 		 | Padrão          | Função        | Ação                 |
 |----------------|------------------|---------------|---------------------|
 |Qualquer um     | /               | home          | Exibe a página home  |
-|Qualquer um     | /snippet        | showSnippet   | Exibe um snippet     |
+|Qualquer um     | /snippet?id=1   | showSnippet   | Exibe o snippet de id correspondente |
 |POST            | /snippet/create | createSnippet | Cria um snippet      |
 
-Neste ponto do desenvolvimento restringimos os métodos HTTP que a função para criar snippets aceita. 
 
-Para tanto basta fazer uso do próprio pacote http da linguagem:
+Estamos simulando o acesso de dados que são buscados através de parâmetros interpolados na URL. Isso é feito utilizando
 
 ```go
-func createSnippet(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.Header().Set("Allow", "POST") // indica o método permitido 
-		http.Error(w, "Method Not Allowed", 405) 
-		return
-	}
-	w.Write([]byte("creating snippet"))
-}
+r.URL.Query().Get(<parâmetro>)
 ```
+
+O e isso corresponderá no URL a forma http://endereco/sub?***parametro***=***passado***
+
