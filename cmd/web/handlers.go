@@ -1,14 +1,34 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
 	"github.com/pedro-git-projects/snippetbox/internal/models"
 )
+
+func (app *application) render(w http.ResponseWriter, status int, page string, data *templateData) {
+	templateSet, ok := app.templateCache[page]
+	if !ok {
+		err := fmt.Errorf("the template %s does not exist", page)
+		app.serverError(w, err)
+		return
+	}
+
+	buffer := new(bytes.Buffer)
+
+	err := templateSet.ExecuteTemplate(buffer, "base", data)
+	if err != nil {
+		app.serverError(w, err)
+	}
+
+	w.WriteHeader(status)
+	buffer.WriteTo(w)
+
+}
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -22,26 +42,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/pages/home.tmpl",
-	}
-
-	ts, err := template.ParseFiles(files...) // relative to the project directory
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	data := &templateData{
+	app.render(w, http.StatusOK, "home.tmpl", &templateData{
 		Snippets: snippets,
-	}
+	})
 
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
@@ -61,26 +65,9 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/pages/view.tmpl",
-	}
-
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	data := &templateData{
+	app.render(w, http.StatusOK, "view.tmpl", &templateData{
 		Snippet: snippet,
-	}
-
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	})
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
