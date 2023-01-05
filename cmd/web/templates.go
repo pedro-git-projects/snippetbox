@@ -9,8 +9,9 @@ import (
 
 // will store the dynamic data needed for template interpolation
 type templateData struct {
-	Snippet  *models.Snippet
-	Snippets []*models.Snippet
+	CurrentYear int
+	Snippet     *models.Snippet
+	Snippets    []*models.Snippet
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
