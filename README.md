@@ -6,10 +6,15 @@
 
 
 
-| Method | Pattern           | Handler         | Action                                           |
-|--------|-------------------|-----------------|--------------------------------------------------|
-| GET    | /                 | home                | Display the home page                        |
-| GET    | /snippet/:id      | snippetView         | Display a specific snippet                   |
-| GET    | /snippet/create   | snippetCreate       | Display HTML form for creating a new snippet |
-| POST   | /snippet/create   | snippetCreatePost   | Create a new snippet                         |
-| GET    | /static           | http.FileServer     | Serve a specific static file                 |
+| Method | Pattern           | Handler         | Action                                            |
+|--------|-------------------|-----------------|---------------------------------------------------|
+| GET    | /                 | home                | Displays the home page                        |
+| GET    | /snippet/view/:id | snippetView         | Displays a specific snippet                   |
+| GET    | /snippet/create   | snippetCreate       | Displays HTML form for creating a new snippet |
+| POST   | /snippet/create   | snippetCreatePost   | Creates a new snippet                         |
+| GET    | /user/signup      | userSignup          | Displays HTML form for signing up a new user  |
+| POST   | /user/signup      | userSignupPost      | Creates a new user                            |
+| GET    | /user/login       | userLogin           | Displays HTML form for signing in a  user     |
+| POST   | /user/login       | userLoginPost       | Authenticates and logs in a  user             |
+| POST   | /user/logout      | userLogoutPost      | Logs out a user                               |
+| GET    | /static           | http.FileServer     | Serves a specific static file                 |
