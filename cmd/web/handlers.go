@@ -19,6 +19,13 @@ type snippetCreateForm struct {
 	validator.Validator
 }
 
+type userSignupForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 func (app *application) render(w http.ResponseWriter, status int, page string, data *templateData) {
 	templateSet, ok := app.templateCache[page]
 	if !ok {
@@ -127,11 +134,38 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Form to sign in new user")
+	data := app.newTemplateData(r)
+	data.Form = userSignupForm{}
+	app.render(w, http.StatusOK, "signup.tmpl", data)
 }
 
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Sign in new user")
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := userSignupForm{
+		Name:     r.PostForm.Get("name"),
+		Email:    r.PostForm.Get("email"),
+		Password: r.PostForm.Get("password"),
+	}
+
+	form.CheckField(validator.NotBlank(form.Name), "name", validator.RequiredField)
+	form.CheckField(validator.NotBlank(form.Email), "email", validator.RequiredField)
+	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", validator.ValidEmail)
+	form.CheckField(validator.NotBlank(form.Password), "password", validator.RequiredField)
+	form.CheckField(validator.MinChars(form.Password, 8), "password", validator.ShortPass)
+
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "signup.tmpl", data)
+		return
+	}
+
+	fmt.Println(w, "creaing new user...")
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {

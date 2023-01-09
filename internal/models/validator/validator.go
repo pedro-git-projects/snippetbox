@@ -1,13 +1,22 @@
 package validator
 
 import (
+	"regexp"
 	"strings"
 	"unicode/utf8"
+)
+
+const (
+	RequiredField = "Required field"
+	ValidEmail    = "The email address must be valid"
+	ShortPass     = "Password must be at least 8 characters long"
 )
 
 type Validator struct {
 	FieldErrors map[string]string
 }
+
+var EmailRX = regexp.MustCompile("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")
 
 func (v *Validator) Valid() bool {
 	return len(v.FieldErrors) == 0
@@ -44,4 +53,12 @@ func IntWithinSet(value int, intSet ...int) bool {
 		}
 	}
 	return false
+}
+
+func MinChars(value string, n int) bool {
+	return utf8.RuneCountInString(value) >= n
+}
+
+func Matches(value string, rx *regexp.Regexp) bool {
+	return rx.MatchString(value)
 }
