@@ -14,7 +14,7 @@ func (app *application) routes() http.Handler {
 		app.notFound(w)
 	})
 
-	dynamic := alice.New(app.sessionManager.LoadAndSave)
+	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf)
 	protected := dynamic.Append(app.requireAuthentication)
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
