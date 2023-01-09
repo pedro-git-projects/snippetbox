@@ -26,6 +26,12 @@ type userSignupForm struct {
 	validator.Validator `form:"-"`
 }
 
+type userLoginForm struct {
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 func (app *application) render(w http.ResponseWriter, status int, page string, data *templateData) {
 	templateSet, ok := app.templateCache[page]
 	if !ok {
@@ -184,11 +190,56 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display html to login user")
+	data := app.newTemplateData(r)
+	data.Form = userLoginForm{}
+	app.render(w, http.StatusOK, "login.tmpl", data)
 }
 
 func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Auth and login user")
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := userLoginForm{
+		Email:    r.PostForm.Get("email"),
+		Password: r.PostForm.Get("password"),
+	}
+
+	form.CheckField(validator.NotBlank(form.Email), "email", validator.RequiredField)
+	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", validator.ValidEmail)
+	form.CheckField(validator.NotBlank(form.Password), "password", validator.RequiredField)
+
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "login.tmpl", data)
+		return
+	}
+
+	id, err := app.users.Authenticate(form.Email, form.Password)
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			form.AddNonFieldError("Email or password is incorret")
+
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, http.StatusUnprocessableEntity, "login.tmpl", data)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
+	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
 }
 
 func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
