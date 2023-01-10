@@ -12,3 +12,6 @@ build:
 
 bin:
 	./build/web -dsn="web:$(pass)@/snippetbox?parseTime=true"
+
+test:
+	go test -v ./cmd/web/
