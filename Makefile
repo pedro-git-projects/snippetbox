@@ -7,3 +7,8 @@ on:
 help:
 	go run ./cmd/web/*.go -help 
 
+build:
+	go build -o build/ ./cmd/web/
+
+bin:
+	./build/web -dsn="web:$(pass)@/snippetbox?parseTime=true"
