@@ -3,6 +3,8 @@ package main
 import (
 	"testing"
 	"time"
+
+	"github.com/pedro-git-projects/snippetbox/internal/models/assert"
 )
 
 func TestHumanData(t *testing.T) {
@@ -31,10 +33,7 @@ func TestHumanData(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			hd := humanDate(test.tm)
-
-			if hd != test.want {
-				t.Errorf("got %q; want %q", hd, test.want)
-			}
+			assert.Equal(t, hd, test.want)
 		})
 	}
 }
