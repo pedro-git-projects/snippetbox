@@ -1,11 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"io"
-	"log"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/pedro-git-projects/snippetbox/internal/models/assert"
@@ -13,27 +9,13 @@ import (
 
 func TestPing(t *testing.T) {
 
-	app := &application{
-		errorLog: log.New(io.Discard, "", 0),
-		infoLog:  log.New(io.Discard, "", 0),
-	}
+	app := newTestApplication(t)
 
-	testServer := httptest.NewTLSServer(app.routes())
+	testServer := newTestServer(t, app.routes())
 	defer testServer.Close()
 
-	result, err := testServer.Client().Get(testServer.URL + "/ping")
-	if err != nil {
-		t.Fatal(err)
-	}
+	code, _, body := testServer.get(t, "/ping")
 
-	assert.Equal(t, result.StatusCode, http.StatusOK)
-
-	defer result.Body.Close()
-	body, err := io.ReadAll(result.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	bytes.TrimSpace(body)
-
-	assert.Equal(t, string(body), "OK")
+	assert.Equal(t, code, http.StatusOK)
+	assert.Equal(t, body, "OK")
 }
